@@ -1,0 +1,126 @@
+<?PHP
+
+/**@var \App\Model\Eloquent\User as $user */ ?>
+<script src="../../../js/jquery.js"></script>
+Вы вошли как <?php
+                echo $user->getName();
+                ?>
+<form action="/User/logout">
+    <input type="submit" value="Выйти">
+</form>
+
+<?php
+if (!$user->isAdmin()) {
+    header('Location: /blog');
+    exit;     
+}
+?>
+<hr>
+<br>
+<p><b>Вывод пользователей:</b></p>
+<?php
+
+if ($users) {
+    foreach ($users as $elem) {  ?>
+        <div>
+            ID: <?php echo $elem->id; ?><br>
+            Имя: <input type="text" value="<?php echo htmlspecialchars($elem->name); ?>" id="user_name<?php echo $elem->id; ?>"> <br>
+            Емаил: <input type="text" value="<?php echo $elem->email; ?>" id="user_email<?php echo $elem->id; ?>"> <br>
+            Пароль: <input type="password" value="" id="user_password<?php echo $elem->id; ?>"> <br>
+            <input type="button" onclick="saveUser(<? echo $elem->id; ?>);" value="Сохранить"><br>
+            <input type="button" onclick="deleteUser(<? echo $elem->id; ?>);" value="Удалить">
+            <div id="response<?php echo $elem->id; ?>"></div>
+        </div>
+        <hr>
+        <br>
+        <br>
+
+        <script>
+            function saveUser(userId) {
+                $.post(
+                    '/admin/saveUser', {
+                        id: userId,
+                        name: $('#user_name' + userId).val(),
+                        email: $('#user_email' + userId).val(),
+                        password: $('#user_password' + userId).val(),
+                    },
+                    function(r) {
+                        if (r.error) {
+                            $('#response' + userId).html('<span style="color:red">' + r.error + '</span>');
+                        } else {
+                            $('#response' + userId).html('<span style="color:green">' + r.result + '</span>');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        }
+                    }
+                );
+            }
+
+            function deleteUser(userId) {
+                $.post(
+                    '/admin/deleteUser', {
+                        id: userId
+                    },
+                    function(r) {
+                        if (r.error) {
+                            $('#response' + userId).html('<span style="color:red">' + r.error + '</span>');
+                        } else {
+                            $('#response' + userId).html('<span style="color:green">' + r.result + '</span>');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        }
+                    }
+                );
+            }
+
+
+            function addUser() {
+                $.post(
+                    '/admin/addUser', {
+                        name: $('#name').val(),
+                        email: $('#email').val(),
+                        password: $('#password').val(),
+                    },
+                    function(r) {
+                        if (r.error) {
+                            $('#response').html('<span style="color:red">' + r.error + '</span>');
+                        } else {
+                            $('#response').html('<span style="color:green">' + r.result + '</span>');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        }
+                    }
+                );
+            }
+        </script>
+<?php
+
+
+
+    }
+} else {
+    echo "<b>Пользователей еще нет</b> <hr>";
+}
+?>
+
+<br>
+<br>
+<b>
+    <p>Добавить пользователя:</p>
+</b>
+Имя: <input type="text" id="name"><br>
+Емаил:<input type="email" id="email"><br>
+Пароль: <input type="password" id="password"><br>
+<input type="button" onclick="addUser()" value="Добавить пользователя">
+<div id="response"></div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
